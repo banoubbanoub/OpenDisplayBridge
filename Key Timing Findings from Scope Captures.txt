@@ -1,0 +1,24 @@
+Key Timing Findings from Scope Captures
+1. Pixel Shift Clock XSCL - Image 3
+   Frequency: 8.013 MHz Period approx 124.8  ns  
+Crucial Implication: Sampling 80 pixels at 8 MHz requires a clock tick every 125 ns.
+Triggering DMA on Timer Input Capture TIM3_CH1 handles this speed, but GPIO
+polling or standard CPU interrupts would be far too slow.
+
+
+2.  Line Pulse / HSYNC LP - Image 1 & 2
+     Line Frequency: 36.70 kHz Line duration approx 27.25 mus 
+             LP Pulse Width: 16.75 uss  
+
+3.  Frame Pulse / VSYNC (YD - Image 1 & 2)
+        Frame Rate: 151.65 Hz Frame period approx 6.6 ms
+        Lines Per Frame: 36.70 kHz  151.65 Hz 242 lines per frame 
+        This matches the expected 240 active scanlines + 2 vertical blanking lines.     
+
+
+Critical Code & Hardware Fixes Required1. 
+Logic Level Shifting (5V Logic Warning)Scope Voltage Measurements: Notice Vmax = 5.40 V on $CH1$ and 5.60 V on 
+CH2.   Hardware Danger: GPIO pins on Port E (PE0–PE9) on the STM32F407 are NOT all 5V tolerant 
+when configured in certain modes.Fix: Ensure you pass UD0–UD3, XSCL, LP, and YD through a fast 5V to 3.3V 
+logic level shifter (e.g., 74LVC245 or resistive voltage dividers) before 
+connecting to the STM32 pins.   
