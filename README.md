@@ -1,3 +1,15 @@
+# OpenDisplayBridge
+
+### Reconstructing Legacy Displays with Microcontrollers
+
+OpenDisplayBridge is an open-source hardware reverse-engineering project that explores how existing digital display signals can be captured, reconstructed, and converted into modern display formats.
+
+Using the Samsung SPS-1000 cash register as a working example, the project demonstrates real-time capture of a 320×240 monochrome display interface and reconstruction as 640×480 VGA using an STM32F407.
+
+The goal is to share reusable techniques for engineers, makers, and repair enthusiasts who want to understand, recover, or adapt displays from legacy embedded systems.
+
+**One display recovered. Techniques others can reuse.**
+
 # Samsung SPS-1000 Live Display Reconstruction Using STM32F407
 
 **Reconstructing a live 320×240 monochrome LCD display as 640×480 VGA using an STM32F407 Discovery board.**
