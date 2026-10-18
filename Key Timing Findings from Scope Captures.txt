@@ -22,3 +22,59 @@ CH2.   Hardware Danger: GPIO pins on Port E (PE0–PE9) on the STM32F407 are NOT
 when configured in certain modes.Fix: Ensure you pass UD0–UD3, XSCL, LP, and YD through a fast 5V to 3.3V 
 logic level shifter (e.g., 74LVC245 or resistive voltage dividers) before 
 connecting to the STM32 pins.   
+///////////////////////////////////////////////
+/////////////////////////////////////////////
+/
+
+
+1. Project Inputs and Outputs  
+SED1351F :
+Data Bus (UD0–UD3): 4-bit parallel monochrome data pins operating at 5V logic levels.
+Pixel Shift Clock (XSCL): Driven at 8.013 MHz (~124.8 ns period), dictating the pixel shift timing.
+Line Pulse / HSYNC (LP): Line frequency of 36.70 kHz (~27.25 $\mu\text{s}$ line duration, 16.75 $\mu\text{s}$ pulse width).
+Frame Pulse / VSYNC (YD): Frame rate of 151.65 Hz (~6.6 ms period, spanning 242 total scanlines: 
+240 active + 2 vertical blanking).
+
+Outputs (To Display System):
+
+VGA Monitor: $640 \times 480$ upscaled video output generated 
+via the STM32F407's Engine3D and VGA library framework running on DMA1 Stream 4.
+
+
+5V Logic Level Warning
+Oscilloscope measurements show peak voltages reaching 5.4V to 5.6V. Because the STM32F407 GPIO pins are not 5V-tolerant in all configurations,
+all cash register signals (UD0–UD3, XSCL, LP, YD) must pass through a fast 5V-to-3.3V logic level shifter (such as a 74LVC245) before reaching the microcontroller.
+
+2. DMA and Timer Capture Architecture
+Because the pixel clock (XSCL) pulses every ~125 ns, software polling or standard CPU interrupts are far too slow to capture data reliably. 
+The project uses a hardware-driven direct memory access pipeline:
+
+External Clock Mode Generation
+TIM1 Configuration
+
+The pixel clock XSCL enters on pin PA8 (TIM1_CH1). TIM1 is configured in External Clock Mode 1, 
+turning every rising clock edge directly into a hardware event without consuming CPU cycles.
+
+Hardware DMA Request
+Triggering Capture
+
+The capture channel is configured to assert a DMA request (CC1DE) on every clock edge, 
+prompting an instantaneous hardware snapshot of the parallel data bus.
+
+Direct Memory Snapshot
+DMA2 Stream 1
+
+
+DMA2 Stream 1 (Channel 6) reads GPIOD->IDR (PD0–PD3) and writes the 4-bit nibbles directly into SRAM at 8 MHz, 
+capturing 80 bytes per scanline (320 pixels / 4 pixels per clock).
+
+Line & Frame Synchronization
+Interrupt Handling
+
+LP on PE8: Fires an EXTI interrupt at the start of each line to re-arm DMA2 Stream 1 for the next 80-byte block.
+YD on PE9: Fires an EXTI interrupt at the start of each frame to reset the line counter and execute a clean ping-pong buffer swap.
+
+Verification Checklist
+
+Timing Alignment: Use a logic analyzer on PA8 (XSCL) and PE8 (LP) to verify that exactly 80 clock edges occur between line pulses.
+Buffer Safety: Ensure that frame buffers are allocated in standard SRAM1/SRAM2 rather than CCM RAM, as DMA controllers cannot access CCM RAM.

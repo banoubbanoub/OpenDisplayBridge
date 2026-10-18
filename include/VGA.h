@@ -41,6 +41,7 @@ public:
     
     void delay_frame(uint16_t frames);
     void waitVBlank();
+    void waitActive();
 
     void setBktmStartHook(void (*func)());
     void setBktmEndHook(void (*func)());

@@ -1,12 +1,3 @@
-// =============================================================================
-// FILE: VGA.cpp
-// SYSTEM: STM32F407 VGA 640x480 @ 60Hz Driver (I2S2 Transmit Mode)
-// ARCHITECTURE: TIM4 Sync Engine + I2S2 MOSI Output + DMA1 Stream 4 (Channel 0)
-// =============================================================================
-
-#include "VGA.h"
-#include "stm32f407xx.h"
-#include "stm32f4xx_hal.h"
 
 // =============================================================================
 // FILE: VGA.cpp
@@ -76,6 +67,10 @@ VGA_class::VGA_class()
 
 void VGA_class::waitVBlank() {
     while (vga_line < VGA_HEIGHT);
+}
+
+void VGA_class::waitActive() {
+    while (vga_line >= VGA_HEIGHT);
 }
 
 void VGA_class::delay_frame(uint16_t frames) {
